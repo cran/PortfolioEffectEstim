@@ -89,7 +89,7 @@ High Frequency Portfolio Analytics\\}
 \vspace{8cm}
 {\huge User Manual \\}
 \vspace{0.3cm}
-{\Huge\bfseries PortfolioEffectEstim \\ MATLAB Toolbox \\}
+{\Huge\bfseries PortfolioEffectEstim \\ R Package \\}
 \vspace{0.4cm}
 {\Large High Frequency Price Estimators \& Models \\}
 % ----------------------------------------------------------------
@@ -608,8 +608,8 @@ c \approx \sqrt{\frac{1}{k_{\bullet}^{0,0}} \left\{-k_{\bullet}^{0,2} + \sqrt{(k
 \noindent 
 
 \centering
-%\noindent
-% \includegraphics[scale=0.7]{latex/NonparametricEstimators/PriceVariance/Pictures/Table}
+\noindent
+\includegraphics[scale=0.7]{img/Table}
 
 \caption{Table Estimators}
 \label{pic:TableEstimators}
@@ -680,7 +680,8 @@ The noise variance can be estimated as the negative of the first order autocovar
 The integrated quarticity is as described in ~\cite[Pigorsch et al.]{Pigorsch_Pigorsch_Popov}:
 \begin{equation}
 IQ = \int_{t-1}^t \sigma^4(s)ds.
-\end{equation}-----------------------------------------------------
+\end{equation}
+%-----------------------------------------------------
 \section{Realized Quarticity}
 %------------------------------------------------------
 \subsection{Assumptions}
@@ -702,16 +703,72 @@ RQ_t = \frac{M}{3} \sum_{j=1}^M r^4_{t,j} \stackrel{p}{\to} IQ
 \end{equation}
 where $M$ is sampling frequency.
 %------------------------------------------------------
+\thispagestyle{plain}
+%------------------------------------------------------
+\section{Realized Quadpower Quarticity}
+%------------------------------------------------------
+\subsection{Assumptions}
+The microstructure noise.
+\begin{enumerate}
+\item The microstructure noise, $\epsilon_{t,i}$ , has zero mean and is an
+independent and identically distributed random variable.
+\item The noise is independent of the price process.
+\item The variance of $\nu_{t,i} = \epsilon_{t,i} - \epsilon_{t,i-1}$ is
+$O(1)$.
+\end{enumerate}
+%------------------------------------------------------
+\subsection{Estimator}
+A more robust estimator then \ref{RQ} on p. \pageref{RQ}, especially
+in the presence of jumps, is the realized quad-power quarticity ~\cite[Corsi et al., 2005]{Corsi_Kretschmer_Mittnik_Pigorsch}:
+\begin{equation}
+RQQ_t = M\frac{\pi^4}{4} \sum_{j=4}^M \mid r_{t,j} \mid \mid r_{t,j-1} \mid \mid
+r_{t,j-2} \mid \mid r_{t,j-3} \mid \stackrel{p}{\to} IQ
+\end{equation}
+%------------------------------------------------------
+%------------------------------------------------------
+\thispagestyle{plain}
+%------------------------------------------------------
+\section{Modulated Realized Quarticity}
+%------------------------------------------------------
+\subsection{Assumptions}
+The microstructure noise.
+\begin{enumerate}
+\item The microstructure noise, $\epsilon_{t,i}$ , has zero mean and is an
+independent and identically distributed random variable.
+\item The noise is independent of the price process.
+\item The variance of $\nu_{t,i} = \epsilon_{t,i} - \epsilon_{t,i-1}$ is
+$O(1)$.
+\end{enumerate}
+%------------------------------------------------------
+\subsection{Estimator}
+Modulated Realized Quarticity is written as ~\cite[Podolskij and Vetter, 2009]{Podolskij_Vetter}:
+\begin{gather}
+MRQ(Y)_n = \frac{(c_1 c_2/3)MBV(Y,4,0)_n - 2\nu_1\nu_2\hat{\omega}^2 MRV(Y)_n - \nu_2^2(\hat{\omega}^2)^2}{\nu_1^2} \stackrel{p}{\to} IQ
+\end{gather}
+where MBV is written as \ref{MBV} on p. \pageref{MBV},
+\begin{gather}
+\nu_1 = \frac{c_1(3c_2-4+(2-c_2)^3\bigvee 0)}{3(c_2-1)^2}
+\end{gather}
+\begin{gather}
+\nu_2 = \frac{2((c_2-1)\bigwedge 1)}{c_1(c_2-1)^2}
+\end{gather}
+We can choose the constants $c_1$ and $c_2$ from specific process:
+\begin{equation}
+c_1 = 0.25, \quad
+c_2 = 2.
+\end{equation}
+%------------------------------------------------------
 \subsection{Properties}
 \begin{itemize}
-\item Convergence speed: $m^{1/n}$ ($m$ - number of observation)
-\item Unbiased:
-\item Consistent:
-\item Jump Robust:
-\item Allows for time dependent noise:
-\item Allows for for endogenous noise:
-\end{itemize} 
- 
+\item Convergence speed: $m^{1/4}$ ($m$ - number of observation)
+\item Unbiased: yes
+\item Consistent: yes
+\item Jump Robust: no
+\item Allows for time dependence noise: no
+\item Allows for for endogenous noise: no
+\end{itemize}
+%------------------------------------------------------
+
 \begin{thebibliography}{100}
 \bibitem{Pigorsch_Pigorsch_Popov}U. Pigorsch, C. Pigorsch, I. Popov, "Volatility estimation based on high-frequency data", In: Duan, JC, Gentle, JE and Hardle E, Handbook of Computational Finance, New York: Springer, 2010
 \bibitem{Zu_Boswijk}Y. Zu and Peter Boswijk, "Estimating spot volatility with high-frequency financial data", Journal of Econometrics, 181(2), pp. 117-135, 2014

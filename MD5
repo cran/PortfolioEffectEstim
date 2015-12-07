@@ -1,13 +1,13 @@
-d64f39f086755c3e55189c8c8f46ce15 *DESCRIPTION
+34b235c0b93f4f6815b81786f09c2cdf *DESCRIPTION
 ed593cca85c7d00fdcbe45ca35a32237 *NAMESPACE
-c6b40e15c9957c4727b5c77730a95f2e *NEWS
+17c0d558356d33ac67a933d9460ee551 *NEWS
 543bfabc67939807131a73cbf08d3bac *R/message.R
 6e77f35975061c59ed8449d9bfc86b6a *R/metrics.R
 5a03bbbd3ae2187190e568107ea8128a *R/onLoad.R
 7e0443e78d66c92bb258d3c202d44dd6 *R/util.R
-8f95470f66183a9db7b24073c67aafec *build/vignette.rds
-abaf18c0098d877a3d2916a0d144c407 *inst/doc/PortfolioEffectEstim.Rnw
-d3432e5c6577565514159c1a852a73f2 *inst/doc/PortfolioEffectEstim.pdf
+4d066defefb191086a1cab29e5d00ed7 *build/vignette.rds
+8af75672e7fcf04b2c079fad9a753379 *inst/doc/PortfolioEffectEstim.Rnw
+e2c75e28532fb89ac0b76a8b53075464 *inst/doc/PortfolioEffectEstim.pdf
 ccf145fc61cc75a9ea61fdb1ecab7287 *man/estimator-class.Rd
 0b3f48cdcd39b7214b786e1b14bccc12 *man/estimator_availableSymbols.Rd
 b7d529ec8e1594336ff6bedcc52a308e *man/estimator_create.Rd
@@ -31,5 +31,6 @@ b31f14632ce73d20bf4d035b36c02476 *man/variance_msrv.Rd
 925a6ac94e1ec96f2ebc4d6ef913e04c *man/variance_rv.Rd
 4c47404edf888ecc4ce432e518ce9a7b *man/variance_tsrv.Rd
 606b6400ab13bdef1f03dd916f84540a *man/variance_uzrv.Rd
-abaf18c0098d877a3d2916a0d144c407 *vignettes/PortfolioEffectEstim.Rnw
+8af75672e7fcf04b2c079fad9a753379 *vignettes/PortfolioEffectEstim.Rnw
+ef663912971e210ed1d1a2a5702aeae6 *vignettes/img/Table.pdf
 c50a4ade92cc9a7cb10d76bc2d9b3085 *vignettes/img/api-settings.png
