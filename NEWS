@@ -1,3 +1,11 @@
+PortfolioEffectHFT v1.2 (Release date: 2016-02-01)
+==============
+
+Changes:
+
+* Fixed errors in examples
+* Restricted to depend on PortfolioEffectHFT version >= 1.5 due to a ggplot2 update
+
 PortfolioEffectHFT v1.1 (Release date: 2015-12-08)
 ==============
 
