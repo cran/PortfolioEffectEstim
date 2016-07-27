@@ -22,9 +22,11 @@
 \usepackage{tikz}
 \usepackage{type1cm}
 \usepackage{textcomp}
+\usepackage{multirow}
+\usepackage{xcolor}
 \usepackage{hyperref}                  % For creating hyperlinks in cross
 \usetikzlibrary{fit}
-   
+
 \definecolor{mygreen}{RGB}{28,172,0} % color values Red, Green, Blue
 \definecolor{mylilas}{RGB}{170,55,241}
 \definecolor{grey}{rgb}{0.97,0.97,0.97}
@@ -157,7 +159,7 @@ You are now ready to install the PortfolioEffectEstim package directly from
 
 
 \chapter{API Credentials}
-All portfolio computations are performed on PortfolioEffect cloud servers.
+All computations are performed on PortfolioEffect cloud servers.
 To obtain a free non-professional account, you need to follow a quick sign-up
 process on our website:
 \href{https://www.portfolioeffect.com/registration}{www.portfolioeffect.com/registration}.\par
@@ -166,9 +168,6 @@ account activation link.
 
 \section{Locate API Credentials} 
 Log in to you account and locate your API credentials on the main page
-
-\includegraphics[width=5in,natwidth=768,natheight=300]{img/api-settings.png}
-
 \section{Set API Credentials in R} 
 Run the following commands to set your account API credentials for the PortfolioEffectEstim R Package installed. 
 You will need to do it only once as your credentials are stored between sessions
@@ -181,13 +180,189 @@ util_setCredentials("API Username", "API Password", "API Key")
 \end{lstlisting}
 You are now ready to call PortfolioEffectEstim methods.
 
+\chapter{Estimator Construction}
+\section{User Data}
+Users may supply their own historical datasets for asset entries. 
+This external data could be one a OHLC bar column element (e.g. 1-second close prices) or a vector of actual transaction prices that contains non-equidistant data points. 
+\subsection{Create Estimator}
+Method
+\href{https://www.portfolioeffect.com/docs/platform/quant/functions/general-functions/estimator-create}{estimator\_create()}.
+takes a vector of asset prices in the format (UTC timestamp, price) with UTC
+timestamp expressed in milliseconds from 1970-01-01 00:00:00 EST.
+\begin{lstlisting}
+      Time          Value
+ [1,] 1412256601000 99.30
+ [2,] 1412256602000 99.33
+ [3,] 1412256603000 99.30
+ [4,] 1412256604000 99.26
+ [5,] 1412256605000 99.36
+ [6,] 1412256606000 99.36
+ [7,] 1412256607000 99.36
+ [8,] 1412256608000 99.38
+ [9,] 1412256609000 99.40
+[10,] 1412256610000 99.37
+\end{lstlisting}
+If asset symbol is specified, it is silently ignored.
+\begin{lstlisting}
+data(spy.data)
+
+# Create estimator
+estimator=estimator_create(priceData=goog.data)
+\end{lstlisting}
+
+\section{Server Data}
+At PortfolioEffect we are capturing and storing 1-second intraday bar history for a 
+\href{https://www.portfolioeffect.com/docs/symbology}{all NASDAQ traded equites}.
+This server-side dataset spans from January 2013 to the latest trading time minus five minutes. 
+It could be used to construct asset estimator and compute intraday estimator metrics.
+\subsection {Create Estimator}
+Method
+\href{https://www.portfolioeffect.com/docs/platform/quant/functions/general-functions/estimator-create}{estimator\_create()}
+creates new asset estimator or overwrites an existing estimator object with the
+same name. \par
+When using server-side data, it only requires a time interval that would be treated.
+\par
+Interval boundaries are passed in the following format:
+\begin{itemize} 
+  \item ``yyyy-MM-dd HH:MM:SS'' (e.g. ``2014-10-01 09:30:00'')
+  \item ``yyyy-MM-dd'' (e.g. ``2014-10-01'')
+  \item ``t-N'' (e.g. ``t-5'' is latest trading time minus 5 days)
+  \item UTC timestamp in milliseconds (mills from ``1970-01-01 00:00:00'') in EST
+  time zone
+\end{itemize}
+\begin{lstlisting}
+# Timestamp in "yyyy-MM-dd HH:MM:SS" format
+estimator=estimator_create(asset='AAPL',fromTime="2014-09-01 09:00:00", 
+						   toTime="2014-09-14 16:00:00")
+
+# Timestamp in "yyyy-MM-dd" format
+estimator=estimator_create(asset='AAPL',fromTime="2014-09-01", 
+						   toTime="2014-09-14")
+
+# Timestamp in "t-N" format
+estimator=estimator_create(asset='AAPL', fromTime="t-5", 
+						   toTime="t")
+\end{lstlisting}
+
+\subsection {Get Symbols List}
+Once estimator is created, 
+\href{https://www.portfolioeffect.com/docs/platform/quant/functions/general-functions/estimator-available-symbols}{estimator\_availableSymbols()} 
+method could be called to receive the list of all available symbols for asset creation. 
+Each symbol is accompanied by a full company/instrument description and listing exchange name.
+
+\begin{lstlisting}
+estimator_availableSymbols(estimator)
+
+      id      description                                                 exchange  
+ [1,] "BBC"   "BioShares Biotechnology Clinical Trials Fund"              "NASDAQ"  
+ [2,] "SCS"   "Steelcase Inc. Common Stock"                               "NYSE"    
+ [3,] "BBD"   "Banco Bradesco Sa American Depositary Shares"              "NYSE"    
+ [4,] "BBG"   "Bill Barrett Corporation Common Stock"                     "NYSE"    
+ [5,] "STPP"  "Barclays PLC - iPath US Treasury Steepener ETN"            "NASDAQ"  
+ [6,] "BBF"   "BlackRock Municipal Income Investment Trust"               "NYSE"      
+ [8,] "BBH"   "Market Vectors Biotech ETF"                                "NYSEARCA"
+ [9,] "SCON"  "Superconductor Technologies Inc. - Common Stock"           "NASDAQ"  
+[10,] "SCX"   "L.S. Starrett Company (The) Common Stock"                  "NYSE"    
+[11,] "BBK"   "Blackrock Municipal Bond Trust"                            "NYSE"  
+\end{lstlisting}
+
+\chapter{Estimator Settings}
+
+These settings regulate how estimator metrics are computed, returned and stored.
+\subsection{Results Sampling Interval}
+Interval to be used for sampling computed results before returning them to the caller. 
+Available interval values are: 
+\begin{itemize} 
+  \item ``Xs'' - seconds
+  \item ``Xm'' - minutes
+  \item ``Xh'' - hours
+  \item ``Xd'' - trading days (6.5 hours in a trading day)
+  \item ``Xw'' - weeks (5 trading days in 1 week)
+  \item ``Xmo'' - month (21 trading day in 1 month)
+  \item ``Xy'' - years (256 trading days in 1 year)
+  \item ``none'' - no sampling.
+  \item ``last'' - only the very last data point is returned  
+\end{itemize}
+Large sampling interval would produce smaller vector of results and would require less time spent on data transfer. 
+Default value of ``1s'' indicates that data is returned for every second during
+trading hours.
+\begin{lstlisting}
+
+estimator=estimator_create(asset='AAPL',fromTime="2014-10-01 09:30:00", 
+						   toTime="2014-10-01 16:00:00")
+
+# sample results every 30 seconds
+estimator_settings(estimator, resultsSamplingInterval="30s")
+variance_30s=variance_tsrv(estimator);
+
+# sample results every 5 minutes
+estimator_settings(estimator, resultsSamplingInterval="15m")
+variance_15m=variance_tsrv(estimator);
+
+util_plot2d(variance_30s,title="TSRV, resultsSamplingInterval",legend="30s")+ util_line2d(variance_15m,legend="15m")
+\end{lstlisting}
+\subsection{Input Sampling Interval}
+Interval to be used as a minimum step for sampling input prices. Available interval values are: 
+\begin{itemize} 
+  \item ``Xs'' - seconds
+  \item ``Xm'' - minutes
+  \item ``Xh'' - hours
+  \item ``Xd'' - trading days (6.5 hours in a trading day)
+  \item ``Xw'' - weeks (5 trading days in 1 week)
+  \item ``Xmo'' - month (21 trading day in 1 month)
+  \item ``Xy'' - years (256 trading days in 1 year)
+  \item ``none'' - no sampling
+\end{itemize}
+Default value is ``none'', which indicates that no sampling is applied.
+\begin{lstlisting}
+
+estimator=estimator_create(asset='AAPL',fromTime="2014-10-01 09:30:00", 
+						   toTime="2014-10-01 16:00:00")
+
+# sample input prices every 30 seconds
+estimator_settings(estimator, inputSamplingInterval="30s")
+variance_30s=variance_tsrv(estimator);
+
+# sample input prices every 5 min
+estimator_settings(estimator, inputSamplingInterval="5m")
+variance_5m=variance_tsrv(estimator);
+
+util_plot2d(variance_30s,title="TSRV,inputSamplingInterval",legend="30s")+ util_line2d(variance_5m,legend="5m")
+\end{lstlisting}
+
+\subsection{Jumps/Outliers Model}
+Used to select jump filtering mode when computing return statistics. Available modes are: 
+\begin{itemize} 
+  \item ``none'' - price jumps are not filtered anywhere
+  \item ``moments'' - price jumps are filtered only when computing return moments
+  (i.e. for expected return, variance, skewness, kurtosis and derived
+  metrics)
+  \item ``all'' - price jumps are filtered from computed returns, prices and all
+   return metrics.
+\end{itemize}
+\begin{lstlisting}
+
+estimator=estimator_create(asset='AAPL',fromTime="2014-10-01 09:30:00", 
+						   toTime="2014-10-02 16:00:00")
+
+# Price jumps detection is enabled for returns and moments
+estimator_settings(estimator, jumpsModel="all")
+variance_all=variance_tsrv(estimator);
+
+# Price jumps detection is disabled
+estimator_settings(estimator, jumpsModel="none")
+variance_none=variance_tsrv(estimator);
+
+util_plot2d(variance_all,title="Variance,jumpsModel",legend="all")+ util_line2d(variance_none,legend="none")
+\end{lstlisting}
+
 
 %------------------------------------------------------
 \chapter{Price Variance}
 %------------------------------------------------------
 \section{Integrated Variance}
 %------------------------------------------------------
-Assume that the logarithmic eqilibrium price of a financial asset is given by the following
+Assume that the logarithmic equilibrium price of a financial asset is given by the following
 diffusion process
 \begin{equation}
 X_t = \int_0^t \mu(s)ds + \int_0^t \sigma(s)dW(s)
@@ -195,7 +370,7 @@ X_t = \int_0^t \mu(s)ds + \int_0^t \sigma(s)dW(s)
 where
 
 \begin{itemize}
-\item $W_t$ is a standart Brownian Motion,
+\item $W_t$ is a standard Brownian Motion,
 \item the mean process $\mu$ is continuous and of finite variation,
 \item $\sigma(t) >0$ denotes the cadlag instantaneous volatility.
 \end{itemize}
@@ -206,7 +381,7 @@ $\Delta$ according to ~\cite[Pigorsch et al.]{Pigorsch_Pigorsch_Popov}:
 IV_t = \int_{t-\Delta}^t \sigma^2(s)ds
 \end{equation}
 \subsection{Returns}
-Suppose there exist $m$ intraday eqilibrium returns, the $i$th intraday return is
+Suppose there exist $m$ intraday equilibrium returns, the $i$th intraday return is
 then defined as:
 \begin{equation}
 r_i^{X(m)}= X_{i/m} - X_{(i-1)/m}, \quad i = 1,2,\ldots,m.
@@ -243,7 +418,7 @@ variance measure, defined as ~\cite[Zu and Boswijk, 2014]{Zu_Boswijk}:
 RV_t=\sum_{i=1}^n (X_{t_i}-X_{t_{(i-1)}})^2 \stackrel{p}{\to} IV
 \end{equation}
 However the realized variance estimator for integrated volatility is not consistent when data is
-contaminated by market microstrcuture noise. In particular, when we only observe
+contaminated by market microstructure noise. In particular, when we only observe
 data with microstructure noise, the realized variance measure will
 diverge. When sampling frequency increases, realized variance actually estimates
 the sum of infinite many variances of noises.
@@ -255,9 +430,13 @@ the sum of infinite many variances of noises.
 \item Consistent: no
 \item Jump Robust: no
 \item Allows for time dependent noise: no
-\item Allows for for endogenous noise: no
+\item Allows for endogenous noise: no
 \end{itemize}
- 
+\subsection{Usage}
+\begin{lstlisting}
+variance_rv(estimator)
+variance_rvRolling(estimator,wLength=23400)
+\end{lstlisting}
  
  
 %------------------------------------------------------
@@ -315,7 +494,17 @@ and so also $K$, based on past data.
 \item Allows for time dependent noise: no
 \item Allows for endogenous noise: no
 \end{itemize}
- 
+ \subsection{Usage}
+\begin{lstlisting}
+variance_tsrv(estimator,K=2)
+variance_tsrvRolling(estimator,K=2,wLength=23400)
+\end{lstlisting}
+where
+
+\begin{itemize}
+\item $K$ is number of subsamples in the slow time series (default: 2)
+\end{itemize}
+
  
 %------------------------------------------------------
 \section{Multiple Series Realized Variance}
@@ -352,8 +541,19 @@ thereby combining the two time scales $J$ and $K$. Here $\bar{n}_K = (n - K
 \item Consistent: yes
 \item Jump Robust: no
 \item Allows for time dependent noise: yes
-\item Allows for for endogenous noise: no
+\item Allows for endogenous noise: no
 \end{itemize} 
+ \subsection{Usage}
+\begin{lstlisting}
+variance_msrv(estimator,K=2,J=1)
+variance_msrvRolling(estimator,K=2,J=1,wLength=23400)
+\end{lstlisting}
+where
+
+\begin{itemize}
+\item $K$ is number of subsamples in the slow time series (default: 2)
+\item $J$ is number of subsamples in the fast time series (default: 1)
+\end{itemize}
 
 %------------------------------------------------------
 \thispagestyle{plain}
@@ -406,9 +606,14 @@ where
 \item Consistent: yes
 \item Jump Robust: no
 \item Allows for time dependent noise: no
-\item Allows for for endogenous noise: no
+\item Allows for endogenous noise: no
 \end{itemize}
- 
+  \subsection{Usage}
+\begin{lstlisting}
+variance_mrv(estimator)
+variance_mrvRolling(estimator,wLength=23400)
+\end{lstlisting}
+
 
 \section{Jump Robust Modulated Realized Variance}
 %------------------------------------------------------
@@ -469,9 +674,13 @@ c_2 = 2.
 \item Consistent: yes
 \item Jump Robust: yes
 \item Allows for time dependent noise: no
-\item Allows for for endogenous noise: no
+\item Allows for endogenous noise: no
 \end{itemize}
-
+  \subsection{Usage}
+\begin{lstlisting}
+variance_jrmrv(estimator)
+variance_jrmrvRolling(estimator,wLength=23400)
+\end{lstlisting}
 
 \section{Kernel-based Realized Variance}
 %------------------------------------------------------
@@ -538,7 +747,7 @@ Kernel-based Realized Variance is~\cite[Barndorff-Nielsen et al., 2006]{Barndorf
 \end{gather}
 \noindent with $h = -H, \ldots, -1,0,1, \ldots, H$ and $n = [1/\delta]$.\\
 
-\noindent Bandwidth for all kernrel is:
+\noindent Bandwidth for all kernel is:
 \begin{gather}
 H = cn^{2/3}\;
 \end{gather}
@@ -550,7 +759,7 @@ n^{1/6}\{\tilde{K}(X_{\delta}) - \int_0^t \sigma_u^2 du\}\stackrel{L_s}{\to} MN 
 \begin{gather}
 k_{\bullet}^{0,0} = \int_0^1 k(x)^2 dx, \quad k_{\bullet}^{0,2} = \int_0^1 k(x)k''(x) dx \quad k_{\bullet}^{0,4} = \int_0^1 k(x)k''''(x) dx
 \end{gather}
-\noindent The value of $c$ which minimises the asymptotic variance is
+\noindent The value of $c$ which minimizes the asymptotic variance is
 \begin{gather}
 c = d \frac {\omega^{4/3}}{(t\int_0^t \sigma_u^4 du)^{1/3}}
 \end{gather}
@@ -561,9 +770,9 @@ d = \left[\frac{2{k^2(0)^2+k'(1)^2}}{k_{\bullet}^{0,0}}\right]^{1/2}
 \noindent The lower bound for the asymptotic variance is $6 dk_{\bullet}^{0,0}
 \omega^{4/3} (t \int_0^t \sigma_u^4 du)^{2/3}$\\
 
-\noindent But for non-flat-top kernel we can rewiew special case.\\
+\noindent But for non-flat-top kernel we can review special case.\\
 
-\noindent Bandwidth for non-flat-top kernrel is:
+\noindent Bandwidth for non-flat-top kernel is:
 \begin{gather}
 H = cn^{1/2}\;
 \end{gather}
@@ -574,7 +783,7 @@ n^{1/4}\{\tilde{K}(X_\delta) - \int_0^t \sigma_u^2 du\}
 MN\left[0,4c k_{\bullet}^{0,0} t \int_0^t \sigma_u^4 du - 8 c^{-1} k_{\bullet}^{0,2}\omega^2 \left(\int_0^t \sigma_u^2 du + \frac{\omega^2}{2}\right) + 4\omega^4c^{-3}\{k'''(0) + k_{\bullet}^{0,4}\} \right]
 \end{gather}
 
-\noindent For this class of kernels the value of $\hat{c}$ which minimises the asymptotic variance is
+\noindent For this class of kernels the value of $\hat{c}$ which minimizes the asymptotic variance is
 \begin{gather}
 c \approx \sqrt{\frac{1}{k_{\bullet}^{0,0}} \left\{-k_{\bullet}^{0,2} + \sqrt{(k_{\bullet}^{0,2})^2 + 3 k_{\bullet}^{0,0} f} \right\}}
 \end{gather}
@@ -587,7 +796,7 @@ c \approx \sqrt{\frac{1}{k_{\bullet}^{0,0}} \left\{-k_{\bullet}^{0,2} + \sqrt{(k
 \item Consistent: yes
 \item Jump Robust: no
 \item Allows for time dependent noise: no
-\item Allows for for endogenous noise: no
+\item Allows for endogenous noise: no
 \end{itemize}
 \subsubsection{Non-Flat-Top Kernel}
 \begin{itemize}
@@ -596,25 +805,57 @@ c \approx \sqrt{\frac{1}{k_{\bullet}^{0,0}} \left\{-k_{\bullet}^{0,2} + \sqrt{(k
 \item Consistent: yes
 \item Jump Robust: no
 \item Allows for time dependent noise: yes
-\item Allows for for endogenous noise: yes
+\item Allows for endogenous noise: yes
 \end{itemize}
- 
+  \subsection{Usage}
+\begin{lstlisting}
+variance_krv(estimator,kernelName="ParzenKernel",bandwidth=1)
+variance_krvRolling(estimator,kernelName="ParzenKernel",bandwidth=1,wLength=23400)
+\end{lstlisting}
+where
+
+\begin{itemize}
+\item $kernelName$ is Kernel name is one of the following (default:"ParzenKernel")
+  \begin{itemize}
+\item "BartlettKernel"
+\item "EpanichnikovKernel"
+\item "SecondOrderKernel"
+\item "CubicKernel" 
+\item "ParzenKernel"
+\item "TukeyHanningKernel"	 
+\item "TukeyHanningModifiedKernel"
+\item "FifthOrderKernel"
+\item "SixthOrderKernel"
+\item "SeventhOrderKernel" 
+\item "EighthOrderKernel" 	 
+\end{itemize}
+\item $bandwidth$ "optimal" to compute optimal bandwidth from the data, or the value of bandwidth (default:1)
+\end{itemize}
 %------------------------------------------------------
 \section{IV Estimators Comparison}
 %------------------------------------------------------
 \thispagestyle{plain}
 %------------------------------------------------------
-\begin{figure}[H]
-\noindent 
-
-\centering
-\noindent
-\includegraphics[scale=0.7]{img/Table}
-
-\caption{Table Estimators}
-\label{pic:TableEstimators}
-\end{figure}
-
+\begin{tabular}{|c|c|c|c|c|c|c|}
+\hline 
+Type & Method & Unbiased & Consistent & Jump Robust & Time dependence noise & Endogenous noise \tabularnewline
+\hline 
+\hline 
+Plain & $RV$ &  NO  &  NO  &  NO  &  NO  &  NO \tabularnewline
+\hline 
+\multirow{2}{*}{Subsampling} & $TSRV$ &  {\bf YES}  &  {\bf YES}  &  NO  &  NO  &  NO \tabularnewline
+\cline{2-7} 
+ & $MSRV$ &  {\bf YES}  &  {\bf YES}  &  NO  &  {\bf YES}  &  NO \tabularnewline
+\hline 
+\multirow{2}{*}{Kernel} & $KRV_{FT}$ &  {\bf YES}  &  {\bf YES}  &  NO  &  NO  &  NO \tabularnewline
+\cline{2-7} 
+ & $KRV_{NFT}$ &  {\bf YES}  &  {\bf YES}  &  NO  &  {\bf YES}  &  {\bf YES} \tabularnewline
+\hline 
+\multirow{2}{*}{Range} & $MRV$ &  {\bf YES}  &  {\bf YES}  &  NO  &  NO  &  NO \tabularnewline
+\cline{2-7} 
+ & $MRV_{jump}$ &  {\bf YES}  &  {\bf YES}  &  {\bf YES}  &  NO  &  NO \tabularnewline
+\hline 
+\end{tabular}
 
 %------------------------------------------------------
 \chapter{Price Noise Variance}
@@ -637,7 +878,7 @@ r_i^{Y(m)} = r_i^{X(m)} + \epsilon_{i}^{(m)}, \quad i= 1,2,\ldots, m,
 i.e. by the efficient intraday return $r_i^{X(m)} = X_{i/m} - X_{(i-1)/m}$ and the intraday
 noise increment $\epsilon_i^{(m)} = u_{i/m} - u_{(i-1)/m}$.\\
 
-\noindent The noise variance $E\epsilon^2$ can be estiated consistently by normalized
+\noindent The noise variance $E\epsilon^2$ can be estimated consistently by normalized
 realized variance over the whole interval $[0,1]$ for noisy data
 ~\cite[Zhang et al., 2005]{Zhang_Mykland_Ait-Sahalia}:
 \begin{equation}
@@ -653,6 +894,7 @@ realized variance over the whole interval $[0,1]$ for noisy data
 \item Jump Robust: yes
 \item Allows for time dependent noise: no
 \end{itemize}
+
 %------------------------------------------------------
 \section{Autocovariance Noise Variance}
 %------------------------------------------------------
@@ -670,7 +912,10 @@ The noise variance can be estimated as the negative of the first order autocovar
 \item Jump Robust: yes
 \item Allows for time dependent noise: no
 \end{itemize}
-
+  \subsection{Usage}
+\begin{lstlisting}
+noise_acnv(estimator)
+\end{lstlisting}
 
 %------------------------------------------------------
 \chapter{Price Quarticity}
@@ -702,6 +947,10 @@ The realized fourth-power variation or realized quarticity, defined as
 RQ_t = \frac{M}{3} \sum_{j=1}^M r^4_{t,j} \stackrel{p}{\to} IQ
 \end{equation}
 where $M$ is sampling frequency.
+  \subsection{Usage}
+\begin{lstlisting}
+quarticity_rq(estimator)
+\end{lstlisting}
 %------------------------------------------------------
 \thispagestyle{plain}
 %------------------------------------------------------
@@ -724,6 +973,10 @@ in the presence of jumps, is the realized quad-power quarticity ~\cite[Corsi et 
 RQQ_t = M\frac{\pi^4}{4} \sum_{j=4}^M \mid r_{t,j} \mid \mid r_{t,j-1} \mid \mid
 r_{t,j-2} \mid \mid r_{t,j-3} \mid \stackrel{p}{\to} IQ
 \end{equation}
+  \subsection{Usage}
+\begin{lstlisting}
+quarticity_rqq(estimator)
+\end{lstlisting}
 %------------------------------------------------------
 %------------------------------------------------------
 \thispagestyle{plain}
@@ -765,8 +1018,12 @@ c_2 = 2.
 \item Consistent: yes
 \item Jump Robust: no
 \item Allows for time dependence noise: no
-\item Allows for for endogenous noise: no
+\item Allows for endogenous noise: no
 \end{itemize}
+  \subsection{Usage}
+\begin{lstlisting}
+quarticity_mrq(estimator)
+\end{lstlisting}
 %------------------------------------------------------
 
 \begin{thebibliography}{100}
@@ -774,7 +1031,7 @@ c_2 = 2.
 \bibitem{Zu_Boswijk}Y. Zu and Peter Boswijk, "Estimating spot volatility with high-frequency financial data", Journal of Econometrics, 181(2), pp. 117-135, 2014
 \bibitem{Zhang_Mykland_Ait-Sahalia}L. Zhang, P. A. Mykland, and Y. Ait-Sahalia, "A tale of two time scales: Determining integrated volatility with noisy high-frequency data", Journal of the American Statistical Association, vol. 100, No. 472, pp. 1394-1411, 2005.
 \bibitem{Podolskij_Vetter}M. Podolskij and M. Vetter, "Estimation of volatility functionals in the simultaneous presence of microstructure noise and jumps", Bernoulli, vol. 15, No. 3, pp. 634-658, 2009.
-\bibitem{BarndorffNielsen_Hansen_Lunde_Shephard}O.E.Barndorff-Nielsen, P.Reinhard Hansen, A.Lunde, and N.Shephard, "Designing realised kernels to measure the ex-post variation of equity prices in the presence of noise", Economics Series Working Papers 264, University of Oxford, Department of Economics, 2006.
+\bibitem{BarndorffNielsen_Hansen_Lunde_Shephard}O.E.Barndorff-Nielsen, P.Reinhard Hansen, A.Lunde, and N.Shephard, "Designing realized kernels to measure the ex-post variation of equity prices in the presence of noise", Economics Series Working Papers 264, University of Oxford, Department of Economics, 2006.
 \bibitem{Oomen}R. C. Oomen, "Comment on realized variance and market microstructure noise by Peter R. Hansen and Asger Lunde," pp. 1-15, 2005.
 \bibitem{Corsi_Kretschmer_Mittnik_Pigorsch} Corsi, F., U. Kretschmer, S. Mittnik and C. Pigorsch, "The Volatility of Realized Volatility", Econometric Reviews, pp. 46-78, 2008
 \end{thebibliography} 
