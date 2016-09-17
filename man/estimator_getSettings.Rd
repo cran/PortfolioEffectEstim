@@ -13,7 +13,7 @@
 \dontrun{
 dateStart = "2014-11-17 09:30:00"
 dateEnd = "2014-11-17 16:00:00"
-estimator<-estimator_create('AAPL',dateStart,dateEnd)
+estimator=estimator_create('AAPL',dateStart,dateEnd)
 estimator_settings(estimator,resultsSamplingInterval='60s')
 settings=estimator_getSettings(estimator)
 }}

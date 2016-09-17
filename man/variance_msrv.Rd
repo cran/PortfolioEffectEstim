@@ -37,7 +37,7 @@ Zhang, L. (2006). Efficient estimation of stochastic volatility using noisy obse
 \examples{ 
 \dontrun{
 data(spy.data) 
-estimator<-estimator_create(priceData=spy.data)
+estimator=estimator_create(priceData=spy.data)
 estimator_settings(estimator,
 				   inputSamplingInterval = '10s',
 				   resultsSamplingInterval = '10s')

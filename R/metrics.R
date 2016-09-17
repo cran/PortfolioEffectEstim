@@ -1,7 +1,7 @@
 setClass("estimator",
 		slots = c(java="jobjRef")
 )
-estimator_mainSettings<-function(estimator){
+estimator_defaultSettings<-function(estimator){
 	estimator_settings(estimator,
 			jumpsModel = "moments",
 			resultsSamplingInterval = "1s",
@@ -65,9 +65,9 @@ estimator_create<-function(asset=NULL,fromTime=NULL,toTime=NULL,priceData=NULL){
 		util_validate()
 		clientConnection=getOption('clientConnection')
 		estimator=new("estimator", java=.jnew("com.portfolioeffect.quant.client.portfolio.Estimator",clientConnection))
-		result<-.jcall(estimator@java,returnSig="Lcom/portfolioeffect/quant/client/result/MethodResult;", method="addAsset", as.double(priceData[,2]),.jlong(priceData[,1]))
+		result<-.jcall(estimator@java,returnSig="Lcom/portfolioeffect/quant/client/result/Metric;", method="addAsset", as.double(priceData[,2]),.jlong(priceData[,1]))
 		util_checkErrors(result)
-		estimator_mainSettings(estimator)
+		estimator_defaultSettings(estimator)
 		return(estimator)
 	}
 	if((class(fromTime)=="character")&(class(toTime)=="character")&(is.null(priceData))){
@@ -75,13 +75,13 @@ estimator_create<-function(asset=NULL,fromTime=NULL,toTime=NULL,priceData=NULL){
 		util_validate()
 		clientConnection=getOption('clientConnection')
 		estimator=new("estimator", java=.jnew("com.portfolioeffect.quant.client.portfolio.Estimator",clientConnection))
-		result<-.jcall(estimator@java,returnSig="Lcom/portfolioeffect/quant/client/result/MethodResult;", method="setFromTime", fromTime)
+		result<-.jcall(estimator@java,returnSig="Lcom/portfolioeffect/quant/client/result/Metric;", method="setFromTime", fromTime)
 		util_checkErrors(result)
-		result<-.jcall(estimator@java,returnSig="Lcom/portfolioeffect/quant/client/result/MethodResult;", method="setToTime", toTime)
+		result<-.jcall(estimator@java,returnSig="Lcom/portfolioeffect/quant/client/result/Metric;", method="setToTime", toTime)
 		util_checkErrors(result)
-		result<-.jcall(estimator@java,returnSig="Lcom/portfolioeffect/quant/client/result/MethodResult;", method="addAsset", asset)
+		result<-.jcall(estimator@java,returnSig="Lcom/portfolioeffect/quant/client/result/Metric;", method="addAsset", asset)
 		util_checkErrors(result)
-		estimator_mainSettings(estimator)
+		estimator_defaultSettings(estimator)
 		return(estimator)
 	}
 	if((class(asset)=="estimator")&(is.null(fromTime))&(is.null(toTime))&(is.null(priceData))){
@@ -97,7 +97,7 @@ estimator_create<-function(asset=NULL,fromTime=NULL,toTime=NULL,priceData=NULL){
 estimator_metric<-function(argList,estimator,...){
 	util_validate(argList)
 	data=list(...)
-		resultTemp<-.jcall(estimator@java,returnSig="Lcom/portfolioeffect/quant/client/result/MethodResult;", method="getMetric",toJSONpe(data))
+		resultTemp<-.jcall(estimator@java,returnSig="Lcom/portfolioeffect/quant/client/result/Metric;", method="getMetric",toJSONpe(data))
 		result<-getResult(resultTemp)
 	return(result)
 }
@@ -323,7 +323,7 @@ noise_nts<-function(estimator){
 	return(result)}
 
 estimator_availableSymbols<-function(estimator){
-	result=.jcall(estimator@java,returnSig="Lcom/portfolioeffect/quant/client/result/MethodResult;", method="getAllSymbolsList")
+	result=.jcall(estimator@java,returnSig="Lcom/portfolioeffect/quant/client/result/Metric;", method="getAllSymbolsList")
 	result<-getResult(result)
 	return(result)
 }

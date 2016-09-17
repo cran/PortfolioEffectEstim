@@ -32,7 +32,7 @@ Robert, C. Y. and Rosenbaum, M. (2012), Volatility and covariation estimation wh
 \examples{ 
 \dontrun{
 data(spy.data) 
-estimator<-estimator_create(priceData=spy.data)
+estimator=estimator_create(priceData=spy.data)
 estimator_settings(estimator,
 				   inputSamplingInterval = '10s',
 				   resultsSamplingInterval = '10s')

@@ -131,12 +131,6 @@ getResultValuesDoubleArrayWithTime<-function(result){
 	colnames(result)<-c("Time","Value")
 	return(result)
 }
-getResultValuesDouble2DArray<-function(portfolio,result){
-	result<-cbind(.jcall(result,returnSig="[J", method="getLongArray", "time"),.jcall(result,returnSig="[[D", method="getDoubleMatrix", "value", simplify=TRUE))
-	colnames(result)<-c("Time",portfolio_symbols(portfolio))
-	return(result)
-
-}
 
 toJSONpe<-function(x){
 	names=names(x)

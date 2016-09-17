@@ -31,7 +31,7 @@ M. Podolskij and M. Vetter, "Estimation of volatility functionals in the simulta
 \examples{ 
 \dontrun{
 data(spy.data) 
-estimator<-estimator_create(priceData=spy.data)
+estimator=estimator_create(priceData=spy.data)
 estimator_settings(estimator,
 				   inputSamplingInterval = '10s',
 				   resultsSamplingInterval = '10s')

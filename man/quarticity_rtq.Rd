@@ -31,7 +31,7 @@ Andersen, T. G., Bollerslev, T., and Diebold, F. X. (2005),"Roughing it Up: Incl
 \examples{ 
 \dontrun{
 data(spy.data) 
-estimator<-estimator_create(priceData=spy.data)
+estimator=estimator_create(priceData=spy.data)
 estimator_settings(estimator,
 				   inputSamplingInterval = '10s',
 				   resultsSamplingInterval = '10s')

@@ -12,7 +12,7 @@
  }
 }
 \value{Void}
-\description{Advanced settings that regulate how porfolio metrics are computed, returned and stored.
+\description{Advanced settings that regulate how estimator metrics are computed, returned and stored.
 Default:
 		jumpsModel = "moments",
 		resultsSamplingInterval = "1s",
@@ -23,7 +23,7 @@ Default:
 \examples{
 \dontrun{
 data(spy.data) 
-estimator<-estimator_create(priceData=spy.data)
+estimator=estimator_create(priceData=spy.data)
 estimator_settings(estimator,
 				   inputSamplingInterval = '10s',
 				   resultsSamplingInterval = '10s')
@@ -31,7 +31,7 @@ util_plot2d(variance_mrv(estimator),title="MRV")
 				   
 dateStart = "2014-11-17 09:30:00"
 dateEnd = "2014-11-17 16:00:00"
-estimator<-estimator_create('AAPL',dateStart,dateEnd)
+estimator=estimator_create('AAPL',dateStart,dateEnd)
 estimator_settings(estimator,
 				   resultsSamplingInterval = '10s')
 util_plot2d(variance_mrv(estimator),title="MRV")
